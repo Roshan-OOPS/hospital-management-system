@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ title }}</h1>
+
+{% if stats %}
+<div class="stats">
+  {% for label, value in stats %}<div><b>{{ value }}</b><span>{{ label }}</span></div>{% endfor %}
+</div>
+{% endif %}
+
+{% if form %}
+<form method="post" action="{{ form.action }}" class="card">
+  <h2>{{ form.title }}</h2>
+  <div class="fields">
+    {% for f in form.fields %}
+    <label>{{ f.label }}
+      {% if f.get('options') is not none %}
+        <select name="{{ f.name }}" required>
+          {% for value, text in f.options %}<option value="{{ value }}">{{ text }}</option>{% endfor %}
+        </select>
+      {% else %}
+        <input name="{{ f.name }}" type="{{ f.get('type', 'text') }}" value="{{ f.get('default', '') }}"
+               {% if f.get('type') == 'number' %}step="any" min="0"{% endif %}
+               {% if f.get('required', True) %}required{% endif %}>
+      {% endif %}
+    </label>
+    {% endfor %}
+  </div>
+  <button type="submit">{{ form.submit }}</button>
+</form>
+{% endif %}
+
+<h2>{{ table_title }}</h2>
+{% if rows %}
+<div class="scroll">
+<table>
+  <thead><tr>
+    {% for key, label in columns %}<th>{{ label }}</th>{% endfor %}
+    {% if rows|selectattr('actions')|list %}<th></th>{% endif %}
+  </tr></thead>
+  <tbody>
+  {% for row in rows %}
+    <tr>
+      {% for key, label in columns %}
+        <td>
+          {% if badge == key %}<span class="badge {{ row[key]|lower }}">{{ row[key] }}</span>
+          {% else %}{{ row[key] if row[key] is not none else '' }}{% endif %}
+        </td>
+      {% endfor %}
+      {% if rows|selectattr('actions')|list %}
+      <td class="acts">
+        {% for a in row.actions or [] %}
+        <form method="post" action="{{ a.url }}">
+          {% if a.kind == 'pay' %}
+            <select name="mode"><option>Cash</option><option>UPI</option><option>Card</option></select>
+          {% endif %}
+          <button class="small {{ a.kind }}">{{ a.label }}</button>
+        </form>
+        {% endfor %}
+      </td>
+      {% endif %}
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="empty">{{ empty }}</p>
+{% endif %}
+{% endblock %}
